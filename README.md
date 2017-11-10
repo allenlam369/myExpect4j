@@ -1,57 +1,64 @@
-myExpect4j
+Auction_API
 ================================================================================== 
-for creating a review file of any datatype in Millennium ILS from a text file of data, without relying on the UI of Mil
+a skeleton RESTful API server for an auction system, in PHP and SLIM3
+
+- Auction_api is a PHP auction system having Restful APIs to connect to various clients.
+- At this stage it is a skeleton system with limited features and functionalities. Its purpose is to demostrate how an auction system can be designed and implemented with Restful APIs. It can also be used as a base of further development.
+
+## Project Dependencies
+- PHP 5.6+
+- SLIM 3 framework
+- MySQL
+- illuminate/database as ORM
+- a httpd server (here we are using php's built-in http service for testing)
+- Composer (http://getcomposer.org) for downloading vendor libraries
 
 
-##A. INTRODUCTION
-
-1. This program reads an input file of ISBN/ISSN list (one number each line)
-2. It tries to find a matching bib record from Innopac
-3. It reports the bib record number and bib mat-format (book or ebook)
-4. If you define operation mode=e, it also captures the first MARC TAG 092
-
-
-##B. INSTALL
-1. copy the folder "isn2bib" to your local hard disk, under any directory you like
-2. make sure you have java 1.6 or above installed
-3. to check your java version, open a command prompt, type in "java -version"
+## Installation and configurations
+- Download the zip of this app. Unpack it to your web root directory
+- Best to define your DocumentRoot to point to the src/public directory of this project. The primary file for running the server is src/public/index.php
+- Use src/models/auction.sql (a phpMyAdmin SQL Dump) to create a MySql DB and tables
+- Edit src/dbconfig.php for DB connection
+- In command line, cd to src/, run 'composer update' to download missing library files. The downloaded files will be stored under src/vendor
 
 
-##C. DEFINE INPUT/OUTPUT
-1. use any text editor to edit genList.ini
-2. define 
-- mode [e|p|all]
-- infilename
-- outfilename
-3. Put your input file under isn2bib/data
-4. The ouput file will be written under isn2bib/data
+## Command Line Interface
+- Under src/cli there are several php files for command line interaction with the server.
+- Before using the cli programs, the http server has to be started
+- A quick way to start a web server is to use PHP's built-in web server. In command line, cd to src/public, then start a http service by command 'php -S localhost:8080'
+- The several cli php files assume the domain is localhost, the http port is 8080, the DocumentRoot is src/public. If you have other settings you need to edit the file src/cli/config.php
+- After starting up the web server, cd to src/cli, run commands like "php listitems.php", "php getitem.php", and other php programs
+- The returned info to the command line are in JSON pretty-print formats for easy reading
 
 
-##D. MEANING OF MODES
-p: printed books (Speed: medium)
-When there are multiple matching of the ISN, it tries to limit the search by "book" and reports the first finding.
-If only ebooks are available it reports the first ebook.
-
-e: ebooks (Speed: slow)
-When there are multiple matching of the ISN, it tries to limit the search by "ebook" and reports the first finding.
-If only printed books are available it reports the first printed book.
-It will further detect the first Marc092 (call number or ebook vendor) and report.
-
-all: both p and e (Speed: fast)
-All matching results are listed, delimited by ';'
-Each result is marked with (book) or (ebook)
+## API Functions and its corresponding cli programs
+| Function                                     | cli program   | HTTP Verb | URL
+|----------------------------------------------|---------------|-----------|---------------
+| Browsing items on auction                    | listitems.php | GET       | /api/item
+| Get details of an item by ID                 | getitem.php   | GET       | /api/item/{id}
+| Browsing users                               | listusers.php | GET       | /api/user
+| Get details of an user by ID                 | getuser.php   | GET       | /api/user/{id}
+| New user registration                        | newuser.php   | POST      | /api/login/new
+| User Login                                   | login.php     | POST      | /api/login
+| Placing a bid on an item by a logged-in user | bid.php       | POST      | /api/bid
 
 
-##E. RUN PROGRAM
-1. define input/output in genList.ini file
-2. open a command prompt, cd to isn2bib
-3. java -jar Isn2Bib.jar
-4. go to data directory to find your output file
-5. the fields in the output file are delimited by TAB
+
+## Create a few new users
+- The DB restored from the dump contains two pre-loaded auction items (id is 1 and 2). You can view the items by listitems.php and getitem.php
+- At the beginning there is no user in the DB. You can create some user accounts by providing 3 informations: username, email, and password
+- create a new user by "php newuser.php"
+- For example, username=aa, email=aa@gmail.com, password=aa (or anything you like)
+- Users login by email and password (by login.php). Email is used as a unique identification for users. User ID is for system uses
+- After a successful login, the system will response with a token to the client. The client should attach the token to further http requests with the system. bid.php has combined these two-step procedures into one
+- For simplicity, all bidding prices are defined as integers. No cent-value is handled.
 
 
-##F. RUNTIME ERROR
-In case of runtime error (e.g. caused by network delay, server response delay, unexpected record sturctures, etc),
-it reports "Error getting search result" in its finding and continues the next search.
-You can pick out those failed lines into a separate input file and try again, or process them manually.
+## Further developments
+- user email verification after registration
+- define user-type to classify different users, e.g. admin, public, etc
+- different authorization to acess different APIs based on user-types
+- define item status (e.g. active, closed) to allow/disallow bidding
+- allow different currencies for listing and bidding
+- many more...
 
